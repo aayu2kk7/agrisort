@@ -1,0 +1,11 @@
+{
+    "nav": {
+        "home": "Home",
+        "prices": "Prices",
+        "compare": "Compare",
+        "storage": "Storage"
+    },
+    "dashboard": {
+        "title": "Today's Mandi Prices"
+    }
+}

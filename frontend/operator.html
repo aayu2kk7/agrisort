@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operator Dashboard - AgriSort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E7D32',
+                        secondary: '#FFA726',
+                        bg: '#F5F5F5'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-bg text-gray-800 font-sans dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+    <nav class="bg-primary text-white shadow-lg sticky top-0 z-50 dark:bg-green-900">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <span class="text-2xl font-heading font-bold" data-i18n="operator.title">AgriSort Operator</span>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="text-xl p-1 rounded hover:bg-white/20 transition"
+                    aria-label="Toggle Dark Mode">🌙</button>
+                <button id="logout-btn" class="bg-red-500 px-4 py-1 rounded text-sm hover:bg-red-600 transition"
+                    data-i18n="auth.logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 space-y-8">
+        <!-- Welcome -->
+        <div class="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+            <h1 class="text-2xl font-bold dark:text-white"><span data-i18n="operator.welcome">Welcome,</span> <span
+                    id="username-display" class="text-primary dark:text-green-400">Operator</span></h1>
+            <p class="text-gray-600 dark:text-gray-300" data-i18n="operator.subtitle">Manage your Mandi and Prices here.
+            </p>
+        </div>
+
+        <!-- Create Mandi Section -->
+        <section id="create-mandi-section" class="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+            <h2 class="text-xl font-bold mb-4 dark:text-white" data-i18n="operator.create_mandi_title">Register New
+                Mandi</h2>
+            <form id="create-mandi-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="text" name="name" placeholder="Mandi Name"
+                    class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    required data-i18n="operator.mandi_name_placeholder">
+                <input type="text" name="location" placeholder="Location"
+                    class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                    required data-i18n="operator.location_placeholder">
+                <button type="submit"
+                    class="bg-secondary text-white font-bold py-2 rounded hover:bg-orange-500 transition"
+                    data-i18n="operator.create_mandi_btn">Create Mandi</button>
+            </form>
+        </section>
+
+        <!-- Add Price Section -->
+        <section id="add-price-section" class="bg-white p-6 rounded-lg shadow hidden dark:bg-gray-800">
+            <h2 class="text-xl font-bold mb-4 dark:text-white" data-i18n="operator.add_price_title">Add Crop Price</h2>
+            <form id="add-price-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <select name="mandi_id" id="mandi-select"
+                        class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white" required>
+                        <option value="" data-i18n="operator.select_mandi">Select Mandi</option>
+                    </select>
+                    <input type="text" name="crop" placeholder="Crop Name (e.g. Wheat)"
+                        class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        required data-i18n="operator.crop_name_placeholder">
+                    <input type="text" name="variety" placeholder="Variety (e.g. Common)"
+                        class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        required data-i18n="operator.variety_placeholder">
+                    <input type="number" name="price" placeholder="Price per Quintal"
+                        class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        required data-i18n="operator.price_placeholder">
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary text-white font-bold py-2 rounded hover:bg-green-700 transition dark:bg-green-700 dark:hover:bg-green-600"
+                    data-i18n="operator.update_price_btn">Update Price</button>
+            </form>
+        </section>
+
+        <!-- Current Prices View -->
+        <section class="bg-white p-6 rounded-lg shadow dark:bg-gray-800">
+            <h2 class="text-xl font-bold mb-4 dark:text-white" data-i18n="operator.market_overview_title">Market
+                Overview</h2>
+            <p class="text-sm text-gray-500 mb-4 dark:text-gray-400" data-i18n="operator.market_overview_subtitle">
+                Current prices across all markets (including yours)</p>
+            <div id="price-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Loaded via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <script type="module">
+        import { AuthModule } from './js/modules/auth.js';
+        import { PriceModule } from './js/modules/prices.js';
+        import { ThemeModule } from './js/modules/theme.js';
+        import { I18nModule } from './js/modules/i18n.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await I18nModule.init();
+            AuthModule.checkAuth();
+            ThemeModule.init();
+
+            const user = AuthModule.getSession();
+            if (user) {
+                document.getElementById('username-display').textContent = user.username;
+                loadOperatorData(user.id);
+            }
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', () => AuthModule.logout());
+
+            // Create Mandi
+            document.getElementById('create-mandi-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+                data.operator_id = user.id;
+
+                await fetch('http://localhost:5000/api/operator/mandi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert('Mandi Created!');
+                loadOperatorData(user.id);
+                e.target.reset();
+            });
+
+            // Add Price
+            document.getElementById('add-price-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData);
+
+                await fetch('http://localhost:5000/api/operator/price', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert('Price Updated!');
+                PriceModule.fetchPrices(); // Refresh grid
+                e.target.reset();
+            });
+
+            // Init Price Module for overview
+            PriceModule.init();
+        });
+
+        async function loadOperatorData(userId) {
+            const res = await fetch(`http://localhost:5000/api/operator/mandi/${userId}`);
+            const mandis = await res.json();
+
+            const select = document.getElementById('mandi-select');
+            select.innerHTML = '<option value="">Select Mandi</option>';
+
+            if (mandis.length > 0) {
+                document.getElementById('add-price-section').classList.remove('hidden');
+                mandis.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.name;
+                    select.appendChild(opt);
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AgriSort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E7D32',
+                        secondary: '#FFA726',
+                        bg: '#F5F5F5'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-bg h-screen flex items-center justify-center dark:bg-gray-900 transition-colors duration-200">
+
+    <button id="theme-toggle"
+        class="absolute top-4 right-4 text-2xl p-2 rounded-full bg-white shadow-md hover:bg-gray-100 dark:bg-gray-800 dark:text-white transition"
+        aria-label="Toggle Dark Mode">🌙</button>
+
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md dark:bg-gray-800">
+        <h1 class="text-3xl font-heading font-bold text-primary text-center mb-6 dark:text-green-400">AgriSort</h1>
+
+        <!-- Tabs -->
+        <div class="flex mb-6 border-b dark:border-gray-700">
+            <button id="tab-login"
+                class="flex-1 py-2 font-bold text-primary border-b-2 border-primary dark:text-green-400 dark:border-green-400"
+                data-i18n="auth.login_title">Login</button>
+            <button id="tab-register"
+                class="flex-1 py-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-green-300 transition"
+                data-i18n="auth.register_title">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                    data-i18n="auth.username">Username</label>
+                <input type="text" name="username"
+                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                    data-i18n="auth.password">Password</label>
+                <input type="password" name="password"
+                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required>
+            </div>
+            <button type="submit"
+                class="w-full bg-primary text-white font-bold py-2 rounded hover:bg-green-700 transition dark:bg-green-700 dark:hover:bg-green-600"
+                data-i18n="auth.login_btn">Login</button>
+        </form>
+
+        <!-- Register Form (Hidden) -->
+        <form id="register-form" class="space-y-4 hidden">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                    data-i18n="auth.username">Username</label>
+                <input type="text" name="username"
+                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                    data-i18n="auth.password">Password</label>
+                <input type="password" name="password"
+                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300" data-i18n="auth.role">Role</label>
+                <select name="role"
+                    class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="farmer" data-i18n="auth.farmer">Farmer</option>
+                    <option value="operator" data-i18n="auth.operator">Mandi Operator</option>
+                </select>
+            </div>
+            <button type="submit"
+                class="w-full bg-secondary text-white font-bold py-2 rounded hover:bg-orange-500 transition"
+                data-i18n="auth.register_btn">Register</button>
+        </form>
+
+        <div id="error-msg" class="mt-4 text-center text-red-500 text-sm hidden"></div>
+    </div>
+
+    <script type="module">
+        import { AuthModule } from './js/modules/auth.js';
+        import { ThemeModule } from './js/modules/theme.js';
+        import { I18nModule } from './js/modules/i18n.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await I18nModule.init();
+            AuthModule.init();
+            ThemeModule.init();
+        });
+    </script>
+</body>
+
+</html>

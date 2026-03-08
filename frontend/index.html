@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSort - Smart Agricultural Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2E7D32',
+                        secondary: '#FFA726',
+                        accent: '#1976D2',
+                        success: '#66BB6A',
+                        error: '#EF5350',
+                        bg: '#F5F5F5'
+                    },
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-bg text-gray-800 font-sans dark:bg-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+    <!-- Navigation -->
+    <nav class="bg-primary text-white shadow-lg sticky top-0 z-50 dark:bg-green-900">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl font-heading font-bold">AgriSort</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#dashboard" class="hover:text-secondary transition" data-i18n="nav.home">Home</a>
+                <a href="#prices" class="hover:text-secondary transition" data-i18n="nav.prices">Prices</a>
+                <a href="#compare" class="hover:text-secondary transition" data-i18n="nav.compare">Compare</a>
+                <a href="#storage" class="hover:text-secondary transition" data-i18n="nav.storage">Storage</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <select id="lang-switcher"
+                    class="bg-white text-primary px-2 py-1 rounded text-sm focus:outline-none dark:bg-gray-700 dark:text-white dark:border-gray-600">
+                    <option value="en">English</option>
+                    <option value="hi">हिंदी</option>
+                    <option value="pa">ਪੰਜਾਬੀ</option>
+                    <option value="bn">বাংলা</option>
+                    <option value="mr">मराठी</option>
+                    <option value="kn">ಕನ್ನಡ</option>
+                    <option value="te">తెలుగు</option>
+                    <option value="ta">தமிழ்</option>
+                    <option value="ml">മലയാളം</option>
+                </select>
+                <button id="theme-toggle" class="text-xl p-1 rounded hover:bg-white/20 transition"
+                    aria-label="Toggle Dark Mode">🌙</button>
+                <button id="logout-btn"
+                    class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition"
+                    data-i18n="nav.logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 space-y-12">
+
+        <!-- Module 1: Price Dashboard -->
+        <section id="prices" class="space-y-6">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <h2 class="text-2xl font-heading font-bold text-primary flex items-center dark:text-green-400">
+                    <span data-i18n="dashboard.title">Today's Mandi Prices</span>
+                    <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400" id="last-updated"></span>
+                </h2>
+                <div class="flex gap-4">
+                    <select id="crop-filter"
+                        class="border rounded px-3 py-2 focus:ring-2 focus:ring-primary outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="all" data-i18n="dashboard.all_crops">All Crops</option>
+                        <option value="Cereals" data-i18n="dashboard.cereals">Cereals</option>
+                        <option value="Vegetables" data-i18n="dashboard.vegetables">Vegetables</option>
+                    </select>
+                    <button id="refresh-btn"
+                        class="bg-primary text-white px-4 py-2 rounded hover:bg-green-700 transition dark:bg-green-700 dark:hover:bg-green-600"
+                        data-i18n="dashboard.refresh">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div id="price-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Price Cards will be injected here -->
+                <div class="col-span-full text-center py-10 text-gray-500 dark:text-gray-400"
+                    data-i18n="dashboard.loading">Loading prices...</div>
+            </div>
+        </section>
+
+        <!-- Module 3: Smart Search -->
+        <section id="search" class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
+            <h2 class="text-xl font-heading font-bold mb-4 dark:text-white" data-i18n="search.title">Smart Search</h2>
+            <div class="flex flex-wrap gap-4 items-end">
+                <div class="flex-1 min-w-[200px] relative">
+                    <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300" data-i18n="search.crop_name">Crop
+                        Name</label>
+                    <input type="text" id="search-input" placeholder="Search crop (e.g. Wheat)..."
+                        data-i18n="search.placeholder"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400">
+                    <div id="search-results"
+                        class="absolute z-10 w-full bg-white shadow-xl rounded-b-lg mt-1 hidden max-h-60 overflow-y-auto dark:bg-gray-700">
+                    </div>
+                </div>
+                <div class="w-32 relative">
+                    <div class="absolute -top-8 right-0 text-xs text-gray-500 font-medium whitespace-nowrap">
+                        <span data-i18n="search.algo">Algo</span>: <span class="text-accent"
+                            data-i18n="search.linear_search">Linear Search</span>
+                    </div>
+                    <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                        data-i18n="search.radius">Radius</label>
+                    <select id="search-radius"
+                        class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-accent outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="10">10 km</option>
+                        <option value="25">25 km</option>
+                        <option value="50">50 km</option>
+                        <option value="100">100 km</option>
+                    </select>
+                </div>
+                <button id="search-btn"
+                    class="bg-accent text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-bold"
+                    data-i18n="search.search_btn">
+                    Search
+                </button>
+            </div>
+            <div id="search-output" class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+                <!-- Search results injected here -->
+            </div>
+        </section>
+
+        <!-- Module 2: Price Comparison -->
+        <section id="compare" class="space-y-6">
+            <h2 class="text-2xl font-heading font-bold text-primary dark:text-green-400" data-i18n="compare.title">
+                Compare
+                Markets</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
+                <div class="flex flex-wrap gap-4 items-end mb-6">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                            data-i18n="compare.select_crop_1">Select Crop 1</label>
+                        <select id="compare-crop-1"
+                            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="" data-i18n="ui.choose_crop">Choose Crop...</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                            data-i18n="compare.select_crop_2">Select Crop 2</label>
+                        <select id="compare-crop-2"
+                            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="" data-i18n="ui.choose_crop">Choose Crop...</option>
+                        </select>
+                    </div>
+                    <button id="compare-btn"
+                        class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-bold"
+                        data-i18n="compare.compare_btn">
+                        Compare
+                    </button>
+                </div>
+
+                <div id="comparison-result" class="hidden">
+                    <h3 class="font-bold text-lg mb-4 dark:text-white" data-i18n="compare.result_title">Comparison
+                        Result</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse dark:text-gray-200">
+                            <thead>
+                                <tr class="border-b bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                                    <th class="p-3" data-i18n="compare.metric">Metric</th>
+                                    <th class="p-3" id="th-crop-1">Crop 1</th>
+                                    <th class="p-3" id="th-crop-2">Crop 2</th>
+                                    <th class="p-3" data-i18n="compare.difference">Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparison-table">
+                                <!-- Comparison rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 5: Market Finder (New Feature) -->
+        <section id="market-finder" class="space-y-6">
+            <h2 class="text-2xl font-heading font-bold text-primary dark:text-green-400"
+                data-i18n="market_finder.title">Find Best Market</h2>
+            <div class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
+                <div class="flex flex-wrap gap-4 items-end mb-6">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                            data-i18n="market_finder.select_crop">Select Crop to Sell</label>
+                        <select id="finder-crop-select"
+                            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            <option value="" data-i18n="ui.choose_crop">Choose Crop...</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -top-8 right-0 text-xs text-gray-500 font-medium whitespace-nowrap">
+                            <span data-i18n="market_finder.sorting">Sorting</span>: <span class="text-secondary"
+                                data-i18n="market_finder.quick_sort">Quick Sort</span>
+                        </div>
+                        <button id="finder-btn"
+                            class="bg-secondary text-white px-6 py-2 rounded-lg hover:bg-orange-500 transition font-bold"
+                            data-i18n="market_finder.find_btn">
+                            Find Markets
+                        </button>
+                    </div>
+                </div>
+
+                <div id="finder-results" class="hidden">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                        <h3 class="font-bold text-lg dark:text-white" data-i18n="market_finder.available_markets">
+                            Available Markets</h3>
+                        <div class="flex gap-2 text-sm">
+                            <button
+                                class="finder-sort-btn px-3 py-1 rounded border hover:bg-gray-50 active dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                                data-sort="price" data-i18n="market_finder.best_price">Best Price</button>
+                            <button
+                                class="finder-sort-btn px-3 py-1 rounded border hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                                data-sort="distance" data-i18n="market_finder.nearest">Nearest</button>
+                            <button
+                                class="finder-sort-btn px-3 py-1 rounded border hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                                data-sort="profit" data-i18n="market_finder.max_profit">Max Profit</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                        <table class="w-full text-left border-collapse dark:text-gray-200">
+                            <thead class="sticky top-0 bg-gray-50 dark:bg-gray-700">
+                                <tr class="border-b dark:border-gray-600">
+                                    <th class="p-3" data-i18n="market_finder.mandi_name">Mandi Name</th>
+                                    <th class="p-3"><span data-i18n="market_finder.price">Price</span> (₹/qtl)</th>
+                                    <th class="p-3" data-i18n="market_finder.distance">Distance</th>
+                                    <th class="p-3" data-i18n="market_finder.est_profit">Est. Profit</th>
+                                    <th class="p-3" data-i18n="market_finder.action">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finder-table-body">
+                                <!-- Rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module 4: Storage Finder -->
+        <section id="storage" class="space-y-6">
+            <h2 class="text-2xl font-heading font-bold text-primary dark:text-green-400" data-i18n="storage.title">
+                Storage
+                Facility Finder</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-white p-6 rounded-lg shadow-md dark:bg-gray-800">
+                        <h3 class="font-bold mb-4 dark:text-white" data-i18n="storage.find_storage">Find Storage</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                                    data-i18n="storage.crop_type">Crop Type</label>
+                                <select
+                                    class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                    <option value="Wheat" data-i18n="crops.Wheat">Wheat</option>
+                                    <option value="Rice" data-i18n="crops.Rice">Rice</option>
+                                    <option value="Potato" data-i18n="crops.Potato">Potato</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1 dark:text-gray-300"
+                                    data-i18n="storage.quantity">Quantity
+                                    (Quintals)</label>
+                                <input type="number"
+                                    class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value="100">
+                            </div>
+                            <button id="find-storage-btn"
+                                class="w-full bg-secondary text-white font-bold py-2 rounded hover:bg-orange-500 transition"
+                                data-i18n="storage.find_btn">
+                                Find Best Facilities
+                            </button>
+                        </div>
+                    </div>
+                    <div id="storage-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                        <!-- Storage cards injected here -->
+                    </div>
+                </div>
+                <div
+                    class="lg:col-span-2 h-[500px] bg-gray-200 rounded-lg overflow-hidden shadow-md relative dark:bg-gray-700">
+                    <div id="map" class="w-full h-full z-0"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 mt-12 dark:bg-gray-900">
+        <div class="container mx-auto px-4 text-center">
+            <p data-i18n="footer.copyright">&copy; 2025 AgriSort. Empowering Indian Farmers.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
